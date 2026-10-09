@@ -1,8 +1,8 @@
 # Cursor + Windows: RTK, Caveman (small rock + binaries), cursor-mem (optional, default on).
-# Idempotent. Run from repo root:
+# Idempotent. Run from the cloned cursor-harness folder:
 #   Set-ExecutionPolicy -Scope Process Bypass -Force
-#   .\scripts\cursor-harness\setup.ps1
-#   .\scripts\cursor-harness\verify.ps1
+#   .\setup.ps1
+#   .\verify.ps1
 param(
   [switch]$SkipMemory,
   [switch]$SkipCavemanSkills,
@@ -158,5 +158,5 @@ if (-not $SkipMemory) {
 }
 
 Write-Host ''
-Write-Host 'Setup finished. Run: .\scripts\cursor-harness\verify.ps1'
+Write-Host 'Setup finished. Run: .\verify.ps1'
 Write-Host 'Restart Cursor. Use Caveman via skill /caveman per chat. Memory viewer: http://127.0.0.1:37800'

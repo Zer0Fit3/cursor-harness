@@ -1,4 +1,6 @@
 # Exit 0 if the Cursor harness stack looks installed. For agents / CI-style checks.
+# Pass -SkipMemory if setup.ps1 was run with -SkipMemory.
+param([switch]$SkipMemory)
 $ErrorActionPreference = 'Continue'
 $fail = 0
 
@@ -22,30 +24,32 @@ Check 'mcp.json' (Test-Path $McpFile)
 if (Test-Path $HooksFile) {
   $h = Get-Content $HooksFile -Raw
   Check 'RTK preToolUse hook' ($h -match 'rtk' -and $h -match 'preToolUse')
-  Check 'cursor-mem hooks' ($h -match 'cursor_mem\.hook_handler')
+  if (-not $SkipMemory) { Check 'cursor-mem hooks' ($h -match 'cursor_mem\.hook_handler') }
 }
 
 if (Test-Path $McpFile) {
   $m = Get-Content $McpFile -Raw
   Check 'MCP caveman' ($m -match '"caveman"')
-  Check 'MCP cursor-mem' ($m -match '"cursor-mem"')
+  if (-not $SkipMemory) { Check 'MCP cursor-mem' ($m -match '"cursor-mem"') }
 }
 
-$cm = Get-Command cursor-mem -ErrorAction SilentlyContinue
-if (-not $cm) {
-  $py = Get-Command python -ErrorAction SilentlyContinue
-  if ($py) { $cm = @{ Source = 'python -m cursor_mem.cli' } }
-}
-Check 'cursor-mem CLI' ($null -ne $cm)
+if (-not $SkipMemory) {
+  $cm = Get-Command cursor-mem -ErrorAction SilentlyContinue
+  if (-not $cm) {
+    $py = Get-Command python -ErrorAction SilentlyContinue
+    if ($py) { $cm = @{ Source = 'python -m cursor_mem.cli' } }
+  }
+  Check 'cursor-mem CLI' ($null -ne $cm)
 
-if ($cm -and $cm.Source -ne 'python -m cursor_mem.cli') {
-  & $cm.Source status 2>&1 | Out-Host
-} elseif (Get-Command python -ErrorAction SilentlyContinue) {
-  python -m cursor_mem.cli status 2>&1 | Out-Host
+  if ($cm -and $cm.Source -ne 'python -m cursor_mem.cli') {
+    & $cm.Source status 2>&1 | Out-Host
+  } elseif (Get-Command python -ErrorAction SilentlyContinue) {
+    python -m cursor_mem.cli status 2>&1 | Out-Host
+  }
 }
 
 if ($fail -gt 0) {
-  Write-Host "`n$fail check(s) failed. Run: .\scripts\cursor-harness\setup.ps1"
+  Write-Host "`n$fail check(s) failed. Run: .\setup.ps1"
   exit 1
 }
 Write-Host "`nAll checks passed. Restart Cursor if hooks/MCP changed recently."
