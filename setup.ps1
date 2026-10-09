@@ -54,6 +54,26 @@ function Merge-McpServer($existing, $name, $entry) {
   return @{ mcpServers = $servers }
 }
 
+# cursor-mem tool descriptions use Unicode (e.g. arrows). Windows MCP stdio defaults to
+# cp1252 and tools/list crashes without UTF-8 stdio (see cursor_mem.mcp.server _respond).
+function Repair-CursorMemMcpUtf8 {
+  $mcp = Read-JsonFile $McpFile
+  if (-not $mcp -or -not $mcp.mcpServers) { return }
+  $cm = $mcp.mcpServers.'cursor-mem'
+  if (-not $cm) { return }
+  $args = @($cm.args)
+  $merged = Merge-McpServer $mcp 'cursor-mem' @{
+    command = $cm.command
+    args    = $args
+    env     = @{
+      PYTHONUTF8       = '1'
+      PYTHONIOENCODING = 'utf-8'
+    }
+  }
+  Write-JsonFile $McpFile $merged
+  Write-Host 'cursor-mem MCP: UTF-8 env (Windows)'
+}
+
 function Test-NodeMin([string]$min = '22.13.0') {
   $v = (node -p 'process.versions.node')
   $a = $min.Split('.').ForEach({ [int]$_ })
@@ -151,6 +171,7 @@ if (-not $SkipMemory) {
   & $py -m pip install --upgrade cursor-mem 2>&1 | Out-Host
   Ensure-PythonScriptsOnPath | Out-Null
   & $py -m cursor_mem.cli install --global 2>&1 | Out-Host
+  Repair-CursorMemMcpUtf8
   & $py -m cursor_mem.cli start 2>&1 | Out-Host
   # Re-assert RTK hook after cursor-mem may have rewritten hooks.json
   $hooksMem = Read-JsonFile $HooksFile

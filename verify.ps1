@@ -30,7 +30,10 @@ if (Test-Path $HooksFile) {
 if (Test-Path $McpFile) {
   $m = Get-Content $McpFile -Raw
   Check 'MCP caveman' ($m -match '"caveman"')
-  if (-not $SkipMemory) { Check 'MCP cursor-mem' ($m -match '"cursor-mem"') }
+  if (-not $SkipMemory) {
+    Check 'MCP cursor-mem' ($m -match '"cursor-mem"')
+    Check 'cursor-mem MCP UTF-8 env' ($m -match 'PYTHONUTF8' -and $m -match 'PYTHONIOENCODING')
+  }
 }
 
 if (-not $SkipMemory) {

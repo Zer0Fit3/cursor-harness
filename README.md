@@ -93,6 +93,7 @@ Use one memory provider only. Don't install claude-mem alongside cursor-mem.
 | `node` not found | Install Node 22.13+, open a new terminal, re-run setup |
 | `cursor-mem` not found after pip | Re-run setup (adds Python `Scripts` to user PATH) or use `python -m cursor_mem.cli start` |
 | cursor-mem worker stopped | `python -m cursor_mem.cli start` or `cursor-mem restart` |
+| cursor-mem MCP red / no tools (Windows) | Re-run `setup.ps1` — it sets `PYTHONUTF8=1` on the MCP server entry. Then restart the `cursor-mem` MCP server in Cursor settings. |
 | RTK not compressing output | `hooks.json` must use the **full path** to `rtk.exe` (setup does this). Check that Cursor Settings → Hooks lists the entry, then restart Cursor. |
 | Hooks wiped by another tool | Re-run `setup.ps1` (re-merges the RTK hook and keeps cursor-mem hooks) |
 | winget blocked | Not needed. Setup downloads RTK with `Invoke-WebRequest`. |
